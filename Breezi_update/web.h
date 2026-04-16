@@ -1,0 +1,304 @@
+const char *DASHBOARD_HTML = R"rawliteral(
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Breezi • Air Purifier Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Poppins', sans-serif; margin: 0; background: linear-gradient(135deg, #d9fbe4, #ecf9f0); color: #1d3b29; line-height: 1.6; }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 16px 28px; background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(14px); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(255, 255, 255, 0.3); }
+    .lang-user { display: flex; gap: 12px; }
+    .lang-btn { background: transparent; border: 1.5px solid rgba(255, 255, 255, 0.5); padding: 8px 16px; border-radius: 12px; cursor: pointer; font-weight: 500; font-size: 15px; transition: all 0.3s ease; color: #1d3b29; }
+    .lang-btn:hover { background: rgba(255, 255, 255, 0.25); border-color: #4CAF50; color: #2e7d32; }
+    .container { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; padding: 20px; }
+    .card { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(16px); border-radius: 18px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08); transition: transform 0.2s ease, box-shadow 0.3s ease; }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15), 0 0 10px rgba(76, 175, 80, 0.35); }
+    h2 { text-align: center; margin: 0 0 15px; font-size: 20px; font-weight: 600; color: #2e7d32; }
+    .aqi-value { font-size: 48px; font-weight: 600; text-align: center; padding: 16px; border-radius: 14px; margin-bottom: 12px; color: #fff; background: linear-gradient(135deg, #43a047, #388e3c); box-shadow: 0 0 12px rgba(76, 175, 80, 0.4); transition: background 0.4s ease; }
+    #main-pollutant { font-weight: 700; font-size: 18px; text-align: center; margin: 8px 0; color: #2e7d32; }
+    #aqi-warning { text-align: center; font-size: 15px; color: #1d3b29; }
+    .env-mini-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; margin-top: 15px; }
+    .env-tile { background: rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 10px 6px; font-size: 14px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); color: #2e7d32; }
+    .env-tile span { display: block; font-weight: 600; font-size: 15px; margin-top: 2px; }
+    .env-tile small { font-size: 11px; color: #406856; }
+    .sensor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 14px; }
+    .sensor-card { background: rgba(255, 255, 255, 0.15); border-radius: 14px; padding: 12px; text-align: center; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08); transition: transform 0.2s ease, box-shadow 0.3s ease; color: #2e7d32; }
+    .sensor-card:hover { transform: scale(1.03); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); }
+    .sensor-card .icon { font-size: 22px; margin-bottom: 4px; }
+    .sensor-card .value { font-size: 20px; font-weight: 600; }
+    .sensor-card .label { font-size: 12px; color: #406856; }
+    .sensor-card .bar { background: rgba(255, 255, 255, 0.25); border-radius: 8px; height: 6px; margin-top: 8px; overflow: hidden; }
+    .sensor-card .bar div { height: 100%; animation: fillBar 1s ease-out; background: #4CAF50; }
+    @keyframes fillBar { from { width: 0; } }
+    .controls .control-row { display: flex; justify-content: space-between; align-items: center; margin: 14px 0; color: #2e7d32; }
+    .logo h2 { display: flex; align-items: center; gap: 8px; font-size: 26px; font-weight: 700; color: #2e7d32; margin: 0; }
+    .plant-icon { font-size: 28px; }
+    .mode-buttons { display: flex; gap: 6px; }
+    .mode-btn { padding: 6px 14px; border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 20px; font-size: 13px; cursor: pointer; transition: all 0.3s ease; background: rgba(255, 255, 255, 0.15); color: #2e7d32; }
+    .mode-btn:hover { background: rgba(255, 255, 255, 0.25); }
+    .mode-btn.active[data-mode="auto"] { background: #4CAF50; color: white; }
+    .mode-btn.active[data-mode="on"] { background: #81C784; color: white; }
+    .mode-btn.active[data-mode="off"] { background: #A5D6A7; color: white; }
+    .fan-icon { display: inline-block; margin-left: 8px; font-size: 18px; }
+    .spin { animation: spin 1s linear infinite; }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    .tabs { text-align: center; margin-bottom: 8px; }
+    .tabs button { margin: 5px; padding: 6px 14px; border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 8px; background: rgba(255, 255, 255, 0.15); cursor: pointer; transition: all 0.3s ease; color: #2e7d32; }
+    .tabs button:hover { background: rgba(255, 255, 255, 0.25); }
+    #metric-controls { text-align: center; margin-bottom: 10px; }
+    #metric-controls label { margin: 0 8px; font-size: 13px; cursor: pointer; color: #2e7d32; }
+    #activity-log { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+    #activity-log th, #activity-log td { border: 1px solid rgba(255, 255, 255, 0.3); padding: 6px; text-align: center; }
+    #activity-log th { background: rgba(255, 255, 255, 0.2); font-weight: 600; color: #2e7d32; }
+    footer { text-align: center; padding: 18px; background: rgba(255, 255, 255, 0.1); font-size: 14px; color: #2e7d32; margin-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.3); }
+    @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<header>
+  <div class="logo"><h2><span class="plant-icon">🌱</span> Breezi Air Purifier</h2></div>
+  <div class="lang-user"><button class="lang-btn">EN</button><button class="lang-btn">VI</button></div>
+</header>
+
+<div class="container">
+  <div class="card">
+    <h2>Air Quality Index</h2>
+    <div id="aqi-box" class="aqi-value">AQI: - (-)</div> 
+    <div id="main-pollutant">🌫 Main Pollutant: --</div>
+    <p id="aqi-warning">⚠️ Checking sensor data...</p>
+    <div class="env-mini-grid">
+      <div class="env-tile">🌡<span id="temp-value">--°C</span><small>Temperature</small></div>
+      <div class="env-tile">💧<span id="humi-value">--%</span><small>Humidity</small></div>
+      <div class="env-tile">🌬<span id="pressure-value">-- hPa</span><small>Pressure</small></div>
+      <div class="env-tile">⛅<span id="weather-value">--</span><small>Weather</small></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Sensor Data</h2>
+    <div class="sensor-grid">
+      <div class="sensor-card"><div class="icon">🌫</div><div class="value">--</div><div class="label">PM2.5</div><div class="bar"><div style="width:0%"></div></div></div>
+      <div class="sensor-card"><div class="icon">🌫</div><div class="value">--</div><div class="label">PM10</div><div class="bar"><div style="width:0%"></div></div></div>
+      <div class="sensor-card"><div class="icon">💨</div><div class="value">--</div><div class="label">CO</div><div class="bar"><div style="width:0%"></div></div></div>
+      <div class="sensor-card"><div class="icon">🏭</div><div class="value">--</div><div class="label">NO₂</div><div class="bar"><div style="width:0%"></div></div></div>
+      <div class="sensor-card"><div class="icon">🛡️</div><div class="value">--</div><div class="label">O₃</div><div class="bar"><div style="width:0%"></div></div></div>
+      <div class="sensor-card"><div class="icon">🏭</div><div class="value">--</div><div class="label">CO₂</div><div class="bar"><div style="width:0%"></div></div></div>
+      <div class="sensor-card"><div class="icon">🧪</div><div class="value">--</div><div class="label">VOC</div><div class="bar"><div style="width:0%"></div></div></div>
+      <div class="sensor-card"><div class="icon">⚗️</div><div class="value">--</div><div class="label">NH₃</div><div class="bar"><div style="width:0%"></div></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="card controls">
+    <h2>Control Panel</h2>
+    <div class="control-row">
+      <span>Filter Fan and Mist <span id="fan-icon" class="fan-icon">🌀</span></span>
+      <div class="mode-buttons" data-control="fan">
+        <button class="mode-btn active" data-mode="auto">Auto</button>
+        <button class="mode-btn" data-mode="on">On</button>
+        <button class="mode-btn" data-mode="off">Off</button>
+      </div>
+    </div>
+    <div class="threshold-row"><span>AQI Threshold</span><input class="threshold-input" type="number" value="100"></div>
+    <h3 style="text-align:center;margin-top:18px;">Device Activity Log</h3>
+    <table id="activity-log"><thead><tr><th>Time</th><th>Fan&Mist Mode</th><th>AQI Status</th><th>Recommendation</th></tr></thead><tbody id="activity-body"></tbody></table>
+  </div>
+
+  <div class="card">
+    <h2>Analytics</h2>
+    <div class="tabs"><button>Hour</button><button>Day</button><button>Week</button></div>
+    <div id="metric-controls">
+      <label><input type="checkbox" value="PM2.5" checked> PM2.5</label>
+      <label><input type="checkbox" value="PM10"> PM10</label>
+      <label><input type="checkbox" value="CO"> CO</label>
+      <label><input type="checkbox" value="NO₂"> NO₂</label>
+      <label><input type="checkbox" value="O₃"> O₃</label>
+      <label><input type="checkbox" value="CO₂"> CO₂</label>
+      <label><input type="checkbox" value="VOC"> VOC</label>
+      <label><input type="checkbox" value="NH₃"> NH₃</label>
+      <label><input type="checkbox" value="Temp"> Temp</label>
+      <label><input type="checkbox" value="Humi"> Humi</label>
+    </div>
+    <canvas id="multiChart"></canvas>
+  </div>
+</div>
+
+<footer>© 2025 Breezi • Air Purifier Dashboard</footer>
+
+<script>
+  let fanMode = "Auto", mistMode = "Auto";
+
+  function logActivity(aqi, status) {
+    if (fanMode !== "Off" || mistMode !== "Off") {
+      const tbody = document.getElementById('activity-body');
+      const now = new Date().toLocaleTimeString();
+      let recommend = aqi > 200 ? "Stay indoors & max filter" : aqi > 150 ? "Keep filtration high" : aqi > 100 ? "Ventilate carefully" : "Normal Auto mode";
+      const row = document.createElement('tr');
+      row.innerHTML = `<td>${now}</td><td>${fanMode}</td><td>${status}</td><td>${recommend}</td>`;
+      tbody.prepend(row);
+      if (tbody.children.length > 20) tbody.removeChild(tbody.lastChild);
+    }
+  }
+
+  document.querySelectorAll('.mode-buttons').forEach(group => {
+    const buttons = group.querySelectorAll('.mode-btn');
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (group.dataset.control === 'fan') {
+          fanMode = btn.dataset.mode === "auto" ? "Auto" : btn.dataset.mode === "on" ? "On" : "Off";
+          const fan = document.getElementById('fan-icon');
+          (btn.dataset.mode === 'on' || btn.dataset.mode === 'auto') ? fan.classList.add('spin'): fan.classList.remove('spin');
+        }
+        fetch(`/control?c=${group.dataset.control}&m=${btn.dataset.mode}`).catch(console.error);
+        const currentAQI = parseInt(document.getElementById('aqi-box').textContent.match(/\d+/)[0]) || 100;
+        logActivity(currentAQI, "Mode Change");
+      });
+    });
+  });
+
+  // --- CHART CONFIG ---
+  const ctx = document.getElementById('multiChart').getContext('2d');
+  const datasetsConfig = {
+      "PM2.5": { label: 'PM2.5', data: [], borderColor: '#2196F3', backgroundColor: 'rgba(33,150,243,0.15)', tension: 0.4, fill: true },
+      "PM10":  { label: 'PM10', data: [], borderColor: '#FFC107', backgroundColor: 'rgba(255,193,7,0.15)', tension: 0.4, fill: true },
+      "CO":    { label: 'CO', data: [], borderColor: '#9C27B0', backgroundColor: 'rgba(156,39,176,0.15)', tension: 0.4, fill: true },
+      "NO₂":   { label: 'NO₂', data: [], borderColor: '#3F51B5', backgroundColor: 'rgba(63,81,181,0.15)', tension: 0.4, fill: true },
+      "O₃":    { label: 'O₃', data: [], borderColor: '#00BCD4', backgroundColor: 'rgba(0,188,212,0.15)', tension: 0.4, fill: true },
+      "NH₃":   { label: 'NH₃', data: [], borderColor: '#795548', backgroundColor: 'rgba(121,85,72,0.15)', tension: 0.4, fill: true },
+      "CO₂":   { label: 'CO₂', data: [], borderColor: '#4CAF50', backgroundColor: 'rgba(76,175,80,0.15)', tension: 0.4, fill: true },
+      "VOC":   { label: 'VOC', data: [], borderColor: '#FF5722', backgroundColor: 'rgba(255,87,34,0.15)', tension: 0.4, fill: true },
+      "Temp":  { label: 'Temp', data: [], borderColor: '#607D8B', backgroundColor: 'rgba(96,125,139,0.15)', tension: 0.4, fill: true },
+      "Humi":  { label: 'Humi', data: [], borderColor: '#009688', backgroundColor: 'rgba(0,150,136,0.15)', tension: 0.4, fill: true }
+  };
+
+  const multiChart = new Chart(ctx, {
+      type: 'line', data: { labels: [], datasets: [datasetsConfig["PM2.5"]] }, 
+      options: { responsive: true, scales: { x: { grid: { color: 'rgba(255,255,255,0.15)' } }, y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.15)' } } } }
+  });
+
+  function updateSensorCard(label, value) {
+      const sensorCards = document.querySelectorAll('.sensor-card');
+      sensorCards.forEach(card => {
+          const cardLabel = card.querySelector('.label').textContent.trim();
+          if (cardLabel === label) {
+              card.querySelector('.value').textContent = value;
+              let max = 200;
+              if (label === 'CO₂') max = 2000; if (label === 'CO') max = 500;
+              const percentage = Math.min(100, (parseFloat(value) / max) * 100);
+              card.querySelector('.bar div').style.width = percentage + '%';
+          }
+      });
+  }
+
+  // --- HÀM CẬP NHẬT DỮ LIỆU TỪ ESP32 (/data) ---
+  function updateSensorData() {
+      fetch('/data')
+          .then(response => response.json())
+          .then(data => {
+              const now = new Date().toLocaleTimeString(); 
+
+              // 1. Hiển thị AQI & Pollutant
+              const aqiStatus = data.aqi_status || "Checking...";
+              const pollutant = data.pollutant || "--";
+              document.getElementById('aqi-box').textContent = `AQI: ${data.aqi} (${aqiStatus})`;
+              // --- BỔ SUNG: LOGIC ĐỔI MÀU NỀN AQI (Giống màn hình LCD) ---
+              const aqiVal = data.aqi;
+              const aqiEl = document.getElementById('aqi-box');
+              let bg = "linear-gradient(135deg, #3b933f, #2e7d32)"; // Mặc định Xanh
+              let txt = "#fff"; // Màu chữ mặc định trắng
+
+              if (aqiVal <= 40) {
+                  bg = "linear-gradient(135deg, #3b933f, #2e7d32)"; // Xanh lá
+              } else if (aqiVal <= 90) {
+                  bg = "linear-gradient(135deg, #e2b808, #fbc02d)"; // Vàng
+                  txt = "#333"; // Chữ màu đen cho dễ đọc trên nền vàng
+              } else if (aqiVal <= 150) {
+                  bg = "linear-gradient(135deg, #ff773d, #f57c00)"; // Cam nhạt
+              } else if (aqiVal <= 200) {
+                  bg = "linear-gradient(135deg, #e31919, #d32f2f)"; // Đỏ/Cam đậm
+              } else if (aqiVal <= 300) {
+                  bg = "linear-gradient(135deg, #ab52c5, #7b1fa2)"; // Tím
+              } else {
+                  bg = "linear-gradient(135deg, #800000, #5d0000)"; // Nâu/Đỏ thẫm
+              }
+
+              // Áp dụng màu
+              aqiEl.style.background = bg;
+              aqiEl.style.color = txt;
+              // ---------------------------------------------------------
+              document.getElementById('main-pollutant').textContent = `Status: ${aqiStatus} • Main: ${pollutant}`;
+              
+              // Cảnh báo AQI
+              let warning = data.aqi > 150 ? "⚠️ Unhealthy! Turn on Purifier." : "✅ Air is Good.";
+              document.getElementById('aqi-warning').textContent = warning;
+              
+              // 2. Hiển thị Môi trường (Temp, Humi, Pressure, Weather từ ESP32)
+              document.getElementById('temp-value').textContent = `${data.temp.toFixed(1)}°C`;
+              document.getElementById('humi-value').textContent = `${data.humi.toFixed(0)}%`;
+              document.getElementById('pressure-value').textContent = (data.pressure) ? `${data.pressure} hPa` : "-- hPa";
+              document.getElementById('weather-value').textContent = (data.weather) ? data.weather : "--";
+
+              // 3. Cập nhật thẻ cảm biến
+              updateSensorCard("PM2.5", data.pm25);
+              updateSensorCard("PM10", data.pm10);
+              updateSensorCard("CO", data.co);
+              updateSensorCard("NO₂", data.no2);
+              updateSensorCard("O₃", data.o3);  // O3
+              updateSensorCard("NH₃", data.nh3); // NH3
+              updateSensorCard("CO₂", data.co2);
+              updateSensorCard("VOC", data.voc);
+
+              // 4. Cập nhật biểu đồ
+              multiChart.data.labels.push(now);
+              if (multiChart.data.labels.length > 12) multiChart.data.labels.shift(); 
+
+              Object.keys(datasetsConfig).forEach(key => {
+                  const ds = datasetsConfig[key];
+                  let val = 0;
+                  // Logic mapping key: thay ký tự đặc biệt ₂->2, ₃->3 để khớp JSON Arduino (o3, no2, nh3...)
+                  // Ví dụ: key="O₃" -> replace ₃->3 -> "o3" (khớp data.o3)
+                  const jsonKey = key.toLowerCase().replace('.', '').replace('₂', '2').replace('₃', '3').replace(' ', '');
+                  
+                  // Map thủ công cho chắc chắn
+                  if(key === "PM2.5") val = data.pm25;
+                  else if(key === "PM10") val = data.pm10;
+                  else if(key === "CO") val = data.co;
+                  else if(key === "NO₂") val = data.no2;
+                  else if(key === "O₃") val = data.o3;
+                  else if(key === "NH₃") val = data.nh3;
+                  else if(key === "CO₂") val = data.co2;
+                  else if(key === "VOC") val = data.voc;
+                  else if(key === "Temp") val = data.temp;
+                  else if(key === "Humi") val = data.humi;
+
+                  ds.data.push(val);
+                  if (ds.data.length > 12) ds.data.shift();
+              });
+              multiChart.update();
+              logActivity(data.aqi, `AQI update: ${aqiStatus}`);
+          })
+          .catch(error => console.error('Sensor Data Error:', error));
+  }
+
+  // Checkbox Listener
+  document.querySelectorAll('#metric-controls input[type="checkbox"]').forEach(chk => {
+      chk.addEventListener('change', () => {
+          const val = chk.value;
+          if (chk.checked) multiChart.data.datasets.push(datasetsConfig[val]);
+          else multiChart.data.datasets = multiChart.data.datasets.filter(ds => ds.label !== datasetsConfig[val].label);
+          multiChart.update();
+      });
+  });
+
+  // Loop
+  updateSensorData(); setInterval(updateSensorData, 3000); 
+</script>
+</body>
+</html>
+)rawliteral";
