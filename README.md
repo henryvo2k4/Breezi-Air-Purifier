@@ -29,7 +29,7 @@ Breezi is a comprehensive Smart Air Purifier and Environmental Monitoring system
 | **CJMCU-6814** | Multi-gas Sensor | CO, NO2, NH3 detection |
 
 ### 📐 System Architecture & Wiring
-![Breezi Fritzing Diagram](images/Breezi_bb.jpg)
+![Breezi Fritzing Diagram](images/Breezi_bb.png)
 *(Note: Wiring diagram showcases the Master ESP32 sensor integration)*
 
 ### ⚙️ Installation & Flashing Guide
