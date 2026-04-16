@@ -26,11 +26,11 @@
 uint8_t* draw_buf;
 
 // WIFI & API
-const char* ssid = "American Study HD";
-const char* password = "66668888";
+const char* ssid = "YOUR WIFI";
+const char* password = "YOUR WIFI PASSWORD";
 
 // API OpenWeatherMap
-String openWeatherMapApiKey = "137d735cbbbbae079275e78092c0c52c";
+String openWeatherMapApiKey = "YOUR API";
 String city = "Saigon";
 String countryCode = "VN";
 
