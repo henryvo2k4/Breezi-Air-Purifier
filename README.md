@@ -16,7 +16,6 @@ Breezi is a comprehensive Smart Air Purifier and Environmental Monitoring system
 * **Smart Auto Mode:** Automatically triggers the purification fan when the calculated AQI exceeds the safe threshold.
 * **Captive Portal WiFi Config:** Implements a fallback AP mode with a DNS captive portal (`ESP32_AQM`) to seamlessly configure home router credentials without hardcoding.
 
-* ![Sơ đồ kết nối hệ thống RF](images/Breezi_bb.png)
 
 ### 🛠️ Hardware & Bill of Materials (BOM)
 | Component | Description | Role in System |
@@ -59,7 +58,6 @@ Breezi là hệ thống Máy lọc không khí và Quan trắc môi trường th
 * **Tự động hóa thông minh (Auto Mode):** Tự động kích hoạt quạt lọc khi phát hiện chỉ số chất lượng không khí (AQI) vượt ngưỡng an toàn.
 * **Cấu hình WiFi thông minh (Captive Portal):** Tự động phát WiFi nội bộ (`ESP32_AQM`) khi mất kết nối mạng để người dùng nhập mật khẩu WiFi nhà dễ dàng, không cần nạp lại code.
 
-* ![Sơ đồ kết nối hệ thống RF](images/Breezi_bb.png)
 
 ### 🛠️ Danh sách linh kiện (BOM)
 | Linh kiện | Mô tả | Vai trò trong hệ thống |
@@ -71,6 +69,8 @@ Breezi là hệ thống Máy lọc không khí và Quan trắc môi trường th
 | **SHT31 (I2C)** | Cảm biến Nhiệt độ/Độ ẩm| Theo dõi khí hậu |
 | **MQ-131 / MQ-135** | Cảm biến khí Analog | Phát hiện O3, CO2 |
 | **CJMCU-6814** | Cảm biến khí đa kênh | Phát hiện CO, NO2, NH3 |
+
+ ![Sơ đồ kết nối hệ thống RF](images/Breezi_bb.png)
 
 ### ⚙️ Hướng dẫn cài đặt
 **1. Master Node (ESP32)**
