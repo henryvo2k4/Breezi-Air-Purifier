@@ -7,8 +7,8 @@
 #include "wifi_config.h"     // Trang cấu hình WiFi
 
 // --- CẤU HÌNH ---
-const char* ssid     = "American Study HD";
-const char* password = "666688";
+const char* ssid     = "YOUR WIFI";
+const char* password = "YOUR WIFI PASSWORD";
 
 // Địa chỉ IP của ESP8266 server (phải khớp với file esp32_breeziphat.ino)
 const char* serverIP = "192.168.1.4";
